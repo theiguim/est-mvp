@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Observatório de Eventos Municipais</title>
+  <meta name="description" content="Protótipo MVP em HTML, CSS e JavaScript para coleta e análise estatística de eventos municipais." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">OE</div>
+        <div>
+          <strong>Observatório</strong>
+          <span>Eventos Municipais</span>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Navegação principal">
+        <a href="#dashboard" data-route="dashboard" class="nav-link active">
+          <span>▦</span> Visão Geral
+        </a>
+        <a href="#events" data-route="events" class="nav-link">
+          <span>◉</span> Eventos
+        </a>
+        <a href="#compare" data-route="compare" class="nav-link">
+          <span>⇄</span> Comparação
+        </a>
+        <a href="#collect-demo" data-route="collect-demo" class="nav-link">
+          <span>◌</span> Coleta Mobile
+        </a>
+      </nav>
+
+      <div class="sidebar-card">
+        <small>Persistência</small>
+        <strong id="storageMode">Carregando...</strong>
+        <p>Com o servidor local, os dados são gravados em <code>db.json</code>. Sem servidor, ficam no navegador.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-button mobile-only" id="menuButton" aria-label="Abrir menu">☰</button>
+        <div>
+          <p class="eyebrow">Powered by Bitbloom</p>
+          <h1 id="pageTitle">Observatório de Eventos Municipais</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn ghost" id="exportJsonBtn">Exportar JSON</button>
+          <button class="btn primary" id="newEventBtn">Novo evento</button>
+        </div>
+      </header>
+
+      <section id="app" class="content"></section>
+    </main>
+  </div>
+
+  <dialog id="eventDialog" class="modal">
+    <form id="eventForm" method="dialog" class="modal-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">Cadastro</p>
+          <h2 id="eventDialogTitle">Novo evento</h2>
+        </div>
+        <button type="button" class="icon-button" data-close-modal>×</button>
+      </div>
+
+      <input type="hidden" name="id" />
+      <div class="form-grid two">
+        <label class="field">
+          <span>Nome do evento</span>
+          <input name="nome" required placeholder="Ex.: São João dos Queijos 2026" />
+        </label>
+        <label class="field">
+          <span>Secretaria</span>
+          <select name="secretariaId" required></select>
+        </label>
+        <label class="field">
+          <span>Categoria</span>
+          <input name="categoria" required placeholder="Cultura e Turismo" />
+        </label>
+        <label class="field">
+          <span>Status</span>
+          <select name="status" required>
+            <option value="rascunho">Rascunho</option>
+            <option value="ativo">Ativo</option>
+            <option value="coleta_aberta">Coleta aberta</option>
+            <option value="encerrado">Encerrado</option>
+            <option value="arquivado">Arquivado</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Data de início</span>
+          <input name="dataInicio" type="date" required />
+        </label>
+        <label class="field">
+          <span>Data de fim</span>
+          <input name="dataFim" type="date" required />
+        </label>
+        <label class="field">
+          <span>Local</span>
+          <input name="local" required placeholder="Praça, parque, auditório..." />
+        </label>
+        <label class="field">
+          <span>Cidade</span>
+          <input name="cidade" required placeholder="São João del-Rei" />
+        </label>
+        <label class="field">
+          <span>Público estimado</span>
+          <input name="publicoEstimado" type="number" min="0" step="1" required />
+        </label>
+        <label class="field">
+          <span>Thumbnail / arte</span>
+          <input name="thumbnailFile" type="file" accept="image/*" />
+          <small>Opcional. Se não enviar, o sistema usa uma arte em gradiente.</small>
+        </label>
+      </div>
+      <label class="field">
+        <span>Descrição</span>
+        <textarea name="descricao" rows="3" placeholder="Resumo institucional do evento"></textarea>
+      </label>
+
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" data-close-modal>Cancelar</button>
+        <button type="submit" class="btn primary">Salvar evento</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="questionDialog" class="modal">
+    <form id="questionForm" method="dialog" class="modal-card small">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">Questionário</p>
+          <h2>Nova pergunta extra</h2>
+        </div>
+        <button type="button" class="icon-button" data-close-modal>×</button>
+      </div>
+      <input type="hidden" name="eventId" />
+      <div class="form-grid">
+        <label class="field">
+          <span>Pergunta</span>
+          <input name="title" required placeholder="Ex.: Qual atração motivou sua vinda?" />
+        </label>
+        <label class="field">
+          <span>Tipo</span>
+          <select name="type" required>
+            <option value="text">Texto curto</option>
+            <option value="textarea">Texto longo</option>
+            <option value="number">Número</option>
+            <option value="money">Valor monetário</option>
+            <option value="single_choice">Escolha única</option>
+            <option value="multi_choice">Múltipla escolha</option>
+            <option value="rating">Nota 1 a 5</option>
+            <option value="boolean">Sim / Não</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Opções</span>
+          <textarea name="options" rows="3" placeholder="Uma opção por linha. Use para escolha única ou múltipla."></textarea>
+        </label>
+        <label class="check-row">
+          <input name="required" type="checkbox" />
+          <span>Obrigatória</span>
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" data-close-modal>Cancelar</button>
+        <button type="submit" class="btn primary">Adicionar pergunta</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="collectorDialog" class="modal">
+    <form id="collectorForm" method="dialog" class="modal-card small">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">Coleta</p>
+          <h2>Novo coletor</h2>
+        </div>
+        <button type="button" class="icon-button" data-close-modal>×</button>
+      </div>
+      <input type="hidden" name="eventId" />
+      <div class="form-grid">
+        <label class="field">
+          <span>Nome do coletor</span>
+          <input name="nome" required placeholder="Nome do servidor" />
+        </label>
+        <label class="field">
+          <span>Telefone opcional</span>
+          <input name="telefone" placeholder="(32) 99999-9999" />
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" data-close-modal>Cancelar</button>
+        <button type="submit" class="btn primary">Gerar link</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
