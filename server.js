@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 4173;
-const ROOT = __dirname;
+const ROOT = path.join(__dirname, 'public');
 const DB_PATH = path.join(ROOT, 'db.json');
 
 const mime = {
